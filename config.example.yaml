@@ -1,0 +1,119 @@
+# 角色卡配置文件示例
+# 使用方法: node build-card.js config.yaml
+
+# 基础信息
+name: 示例卡片
+creator: ""
+character_version: ""
+
+# 封面图路径（PNG 打包时直接读取，可选）
+cover: 封面图/示例卡片.png
+
+# 主要字段映射(空字符串表示该字段为空)
+# 对话补充等额外设定应该放入 character_book，而不是使用 mes_example
+#
+# 单角色作品: description 填写角色设定文件路径
+# 多角色作品: description 保持为空 ""，各角色设定写入 character_book 的其他设定条目中
+fields:
+  description: 作品/示例作品/角色设定.xyaml  # 单角色时使用；多角色时留空
+  personality: ""
+  scenario: ""
+  first_mes: 作品/示例作品/开场白.md
+  mes_example: ""
+  creator_notes: ""
+  system_prompt: ""
+  post_history_instructions: ""
+
+# 扩展字段
+extensions:
+  talkativeness: "0.5"
+  fav: false
+  world: 示例卡片
+
+  # 状态栏文件路径(可选)
+  status_bar: 作品/示例作品/状态栏.html
+
+# 脚本配置
+scripts:
+  # 变量结构设计脚本（Zod Schema）
+  - name: "变量结构设计"
+    content: 作品/示例作品/变量结构.js
+    enabled: true
+
+# 角色书配置
+character_book:
+  name: 示例卡片
+
+  entries:
+    # [InitVar]初始化条目 - 保持关闭状态
+    - comment: "[initvar]变量初始化"
+      content: 作品/示例作品/[initvar]变量初始化.xyaml
+      enabled: false
+      position: before_char
+      insertion_order: 101
+      depth: 4
+      role: 0
+
+    # 变量更新规则 - 永久、@D系统、深度1、顺序1
+    - comment: "[mvu_update]变量更新规则"
+      content: 作品/示例作品/[mvu_update]变量更新规则.xyaml
+      enabled: true
+      position: at_depth  # 对应 value=4
+      insertion_order: 1
+      depth: 1
+      role: 0  # @D系统
+
+    # 变量列表 - 永久、@D系统、深度1、顺序2
+    - comment: "变量列表"
+      content: 作品/示例作品/变量列表.xyaml
+      enabled: true
+      position: at_depth
+      insertion_order: 2
+      depth: 1
+      role: 0
+
+    # 变量输出格式 - 永久、@D系统、深度1、顺序3
+    - comment: "[mvu_update]变量输出格式"
+      content: 作品/示例作品/[mvu_update]变量输出格式.xyaml
+      enabled: true
+      position: at_depth
+      insertion_order: 3
+      depth: 1
+      role: 0
+
+    # 背景设定 - 永久、角色定义之前、顺序1
+    - comment: "背景设定"
+      content: 作品/示例作品/背景设定.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+
+    # 玩家角色 - 永久、角色定义之前、顺序2
+    - comment: "玩家角色_{{user}}"
+      content: 作品/示例作品/玩家角色.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 2
+      depth: 4
+      role: 0
+
+    # 其他设定条目 - 可以有多个，insertion_order 依次递增
+    # 多角色作品：将各角色设定依次写入此处（如：角色A、角色B、角色C...）
+    # 单角色作品：其他补充设定写入此处
+    - comment: "其他设定条目1"  # 多角色时：角色A设定
+      content: 作品/示例作品/其他设定1.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+
+    - comment: "其他设定条目2"  # 多角色时：角色B设定
+      content: 作品/示例作品/其他设定2.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 2
+      depth: 4
+      role: 0

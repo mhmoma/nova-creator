@@ -1,0 +1,25 @@
+node_modules/
+.DS_Store
+
+# Local creative output (not part of the tool repo)
+作品/
+世界书/
+完整作品/
+封面图/
+to-do.md
+
+# Environment variables and credentials
+.env
+service-account.json
+*.local.*
+
+# Other local configuration
+*.local
+
+# Claude local settings
+.claude/
+.claude/settings.local.json
+.claude/*.local.*
+
+# Gemini local settings
+.gemini/
