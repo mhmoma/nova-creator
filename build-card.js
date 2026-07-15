@@ -24,6 +24,35 @@ function normalizePath(filePath) {
 }
 
 /**
+ * 解析字段值：优先按文件路径读取；路径不存在且内容像正文时，按内联文本使用
+ */
+function resolveFieldValue(value) {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+
+  const text = String(value);
+  const normalized = normalizePath(text.trim());
+
+  try {
+    if (fs.existsSync(normalized) && fs.statSync(normalized).isFile()) {
+      return readFile(normalized);
+    }
+  } catch {
+    // 继续尝试按内联文本处理
+  }
+
+  // 多行、无扩展名、或不像相对路径 → 视为内联正文
+  const looksLikePath = /[\\/]/.test(text) || /\.\w{1,10}$/.test(text.trim());
+  if (!looksLikePath || text.includes('\n')) {
+    console.warn(`字段按内联文本处理（未找到文件）: ${text.slice(0, 40).replace(/\n/g, ' ')}...`);
+    return text;
+  }
+
+  return readFile(normalized);
+}
+
+/**
  * 创建条目的固定结构
  */
 function createEntryTemplate() {
@@ -234,10 +263,10 @@ function buildCharacterCard(configPath) {
   const configContent = readFile(configPath);
   const config = yaml.load(configContent);
 
-  // 读取字段内容
+  // 读取字段内容（支持文件路径或内联正文）
   const fields = {};
-  for (const [key, value] of Object.entries(config.fields)) {
-    fields[key] = value ? readFile(normalizePath(value)) : "";
+  for (const [key, value] of Object.entries(config.fields || {})) {
+    fields[key] = resolveFieldValue(value);
   }
 
   // 构建角色书条目
@@ -333,7 +362,7 @@ function main() {
   }
 }
 
-export { buildCharacterCard, buildCharacterBookEntry, readFile, normalizePath };
+export { buildCharacterCard, buildCharacterBookEntry, readFile, normalizePath, resolveFieldValue };
 
 const __filename = fileURLToPath(import.meta.url);
 

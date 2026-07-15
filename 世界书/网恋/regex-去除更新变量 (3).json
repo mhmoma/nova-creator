@@ -1,0 +1,17 @@
+{
+    "id": "fc3d2d10-c7bc-41b8-8eb5-6d36151134c2",
+    "scriptName": "去除更新变量",
+    "disabled": false,
+    "runOnEdit": true,
+    "findRegex": "/<(Phone)?UpdateVariable>[\\s\\S]*?<\\/(Phone)?UpdateVariable>/gm",
+    "replaceString": "",
+    "trimStrings": [],
+    "placement": [
+        2
+    ],
+    "substituteRegex": 0,
+    "minDepth": null,
+    "maxDepth": null,
+    "markdownOnly": true,
+    "promptOnly": true
+}

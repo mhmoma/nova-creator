@@ -1,0 +1,65 @@
+# 基础信息
+name: 性奴姐姐
+creator: "主人与Pyrite"
+character_version: "1.0"
+
+# 封面图路径
+cover: 封面图/性奴姐姐.png
+
+# 主要字段映射
+fields:
+  description: 作品/性奴姐姐/角色设定_林若雪.xyaml
+  personality: ""
+  scenario: ""
+  first_mes: 作品/性奴姐姐/开场白.md
+  mes_example: ""
+  creator_notes: 作品/性奴姐姐/创作笔记.md
+  system_prompt: ""
+  post_history_instructions: ""
+
+# 扩展字段
+extensions:
+  talkativeness: "0.5"
+  fav: false
+  world: 性奴姐姐
+  status_bar: ""
+
+# 角色书配置
+character_book:
+  name: 性奴姐姐
+  entries:
+    # 背景设定
+    - comment: "背景设定"
+      content: 作品/性奴姐姐/背景设定.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+
+    # 玩家角色
+    - comment: "玩家角色_{{user}}"
+      content: 作品/性奴姐姐/玩家角色_{{user}}.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 2
+      depth: 4
+      role: 0
+
+    # 对话补充
+    - comment: "对话补充_林若雪"
+      content: 作品/性奴姐姐/对话补充_林若雪.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+      
+    # 角色采访
+    - comment: "角色采访_林若雪"
+      content: 作品/性奴姐姐/角色采访_林若雪.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 2
+      depth: 4
+      role: 0

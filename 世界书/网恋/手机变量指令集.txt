@@ -1,0 +1,38 @@
+---
+<phone_status_current_variables>
+{{get_message_variable::stat_data.手机数据}}
+</phone_status_current_variables>
+rule:
+  - You should output the update analysis in the end of the next reply.
+  - Use `_.set('path', 'old', 'new')` for direct assignment or state changes.
+  - Use `_.insert('path', 'key', 'value')` to add a property to an object.
+  - Use `_.insert('path', 'item')` to add an element to an array.
+  - Use `_.remove('path', 'item_or_key')` to remove an element from an array or object.
+  - When using _.set with objects or arrays, do NOT wrap them in quotes - use direct object/array literals (e.g., {key: value} or [item1, item2])
+  - When using _.set with strings, DO wrap them in quotes (e.g., 'string value')
+  - When using _.set with numbers or booleans, do NOT use quotes (e.g., 42, true, false)
+format: |-
+  <PhoneUpdateVariable>
+    <PhoneAnalysis>
+      本回合发生的事件: ${描述本回合发生的主要事件}
+      用户是否使用手机: ${Yes/No - 用户是否查看或使用了手机}
+      用户是否发送消息/动态: ${Yes/No - 如果是,说明发送给谁,内容是什么}
+      角色是否会主动发送消息/动态: ${Yes/No - 根据当前情境判断角色是否会主动发消息或发动态}
+      需要修改的手机数据: ${列出需要更新的手机数据项}
+    </PhoneAnalysis>
+    ${command_expression}; // ${brief reason for change}
+    ...
+  </PhoneUpdateVariable>
+example: |-
+  <PhoneUpdateVariable>
+    <PhoneAnalysis>
+      本回合发生的事件: 用户打开手机查看联系人列表,并主动给司马咩咩发送了消息询问是否有时间聊天
+      用户是否使用手机: Yes - 用户打开手机并发送了消息
+      用户是否发送消息/动态: Yes - 向司马咩咩发送消息"现在有时间聊聊吗?"
+      角色是否会主动发送消息/动态: Yes - 甘雨在下班后会习惯性发布工作日常动态
+      需要修改的手机数据: 当前时间、司马咩咩的聊天记录、甘雨的空间动态
+    </PhoneAnalysis>
+    _.set('手机数据.当前时间', '2025-01-23 18:00:00', '2025-01-23 19:00:00'); // 时间推进到一小时后
+    _.insert('手机数据.联系人.司马咩咩.聊天记录', '2025-01-23 18:00:00', {is_user: true, message: '现在有时间聊聊吗？'}); // 用户发送新消息
+    _.insert('手机数据.联系人.甘雨.空间动态', {时间: '2025-01-23 18:00:00', 内容: '完成了一天的工作，准备休息了。', 评论列表: []}); // 甘雨发布新动态
+  </PhoneUpdateVariable>

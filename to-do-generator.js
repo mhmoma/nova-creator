@@ -1227,18 +1227,23 @@ function resetForm() {
  * 3. 点击“解析并填充”按钮，信息将自动填入表单。
  *
  * 支持的格式：
- * - 使用 `## 标题` 或 `---` 来区分大的模块。
+ * - 使用 `## 标题` 区分大的模块（单独的 `---` 仅作装饰，不参与切分）。
  * - 在每个模块下，使用 `字段名: 值` 的格式来填写信息。
  * - 对于多行文本（如“背景描述”），字段名写在第一行，后续所有行都会被识别。
+ * - 列表续行（`- xxx:` / `1. xxx:`）不会被误判为新字段。
  * - 对于需要勾选的选项（如“需要”），直接写 `字段名: 需要` 即可。
  * - 对于多选字段（如“组件选择”），多行内容会被合并。
+ * - 同一类模块出现多次（如多段对话补充）会自动合并填充。
  */
 function parseAndFill() {
-    const text = $('#importText').val();
+    let text = $('#importText').val();
     if (!text.trim()) {
         alert('导入的文本不能为空！');
         return;
     }
+
+    // 统一换行，避免 Windows CRLF 导致字段正则匹配失败
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
     // 重置部分表单以避免数据叠加
     $('#charactersContainer').empty();
@@ -1248,14 +1253,21 @@ function parseAndFill() {
     variableCount = 0;
     addVariable(); // 至少保证有一个变量卡
 
-    const sections = text.split(/\n(?:## |---)\s*/);
+    // 仅按 ## 二级标题分节；单独的 --- 只是装饰分隔线，不能参与切分
+    // （旧逻辑把 --- 也当分隔符，会导致标题变成「## 基本信息」从而全部匹配失败）
+    const sections = text.split(/(?:^|\n)##\s+/);
 
     sections.forEach(sectionText => {
         if (!sectionText.trim()) return;
 
         const lines = sectionText.trim().split('\n');
-        const title = lines.shift().trim();
-        const content = lines.join('\n');
+        // 去掉可能残留的 # 前缀，并忽略纯 --- 装饰行
+        let title = lines.shift().trim().replace(/^#+\s*/, '');
+        const content = lines
+            .filter(line => line.trim() !== '---')
+            .join('\n');
+        if (!title || title.startsWith('文本导入格式')) return;
+
         const data = parseSectionContent(content);
 
         if (title.startsWith('基本信息')) {
@@ -1289,13 +1301,14 @@ function parseAndFill() {
 }
 
 function parseSectionContent(sectionContent) {
-    const lines = sectionContent.trim().split('\n');
+    const lines = sectionContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split('\n');
     const data = {};
     let currentKey = null;
     let multiLineValue = '';
 
     for (const line of lines) {
-        const match = line.match(/^([^:]+):\s*(.*)$/);
+        // 顶层「字段名: 值」；列表项（- xxx: / 1. xxx:）视为多行内容续行，避免把场景需求等截断
+        const match = line.match(/^(?![-*•]\s|\d+\.\s)([^:]+):\s*(.*)$/);
         if (match) {
             // 如果是新的key-value对，先保存上一个多行文本
             if (currentKey) {
@@ -1411,14 +1424,40 @@ function fillOpening(data) {
 
 function fillDialogue(data) {
     if (data['需要'] === '需要') $('#needDialogue').prop('checked', true).trigger('change');
-    if (data['对应角色']) $('#dialogueCharacter').val(data['对应角色']);
-    if (data['场景需求']) $('#dialogueScenes').val(data['场景需求']);
+    if (data['对应角色']) {
+        const existing = $('#dialogueCharacter').val().trim();
+        const role = data['对应角色'].trim();
+        if (!existing) {
+            $('#dialogueCharacter').val(role);
+        } else if (!existing.split(/\s*\/\s*/).includes(role)) {
+            $('#dialogueCharacter').val(existing + ' / ' + role);
+        }
+    }
+    if (data['场景需求']) {
+        const existing = $('#dialogueScenes').val().trim();
+        const role = data['对应角色'] ? `【${data['对应角色']}】\n` : '';
+        const block = role + data['场景需求'];
+        $('#dialogueScenes').val(existing ? existing + '\n\n' + block : block);
+    }
 }
 
 function fillInterview(data) {
     if (data['需要'] === '需要') $('#needInterview').prop('checked', true).trigger('change');
-    if (data['对应角色']) $('#interviewCharacter').val(data['对应角色']);
-    if (data['采访主题']) $('#interviewTopics').val(data['采访主题']);
+    if (data['对应角色']) {
+        const existing = $('#interviewCharacter').val().trim();
+        const role = data['对应角色'].trim();
+        if (!existing) {
+            $('#interviewCharacter').val(role);
+        } else if (!existing.split(/\s*\/\s*/).includes(role)) {
+            $('#interviewCharacter').val(existing + ' / ' + role);
+        }
+    }
+    if (data['采访主题']) {
+        const existing = $('#interviewTopics').val().trim();
+        const role = data['对应角色'] ? `【${data['对应角色']}】\n` : '';
+        const block = role + data['采访主题'];
+        $('#interviewTopics').val(existing ? existing + '\n\n' + block : block);
+    }
 }
 
 function fillPlayer(data) {

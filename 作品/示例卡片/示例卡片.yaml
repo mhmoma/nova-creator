@@ -1,0 +1,63 @@
+name: 示例卡片
+creator: ''
+character_version: ''
+fields:
+  description: 作品/示例卡片/简介.txt
+  personality: ''
+  scenario: ''
+  first_mes: 作品/示例卡片/开场白.md
+  mes_example: ''
+  creator_notes: ''
+  system_prompt: ''
+  post_history_instructions: ''
+extensions:
+  talkativeness: '0.5'
+  fav: false
+  world: 这里是世界书名称
+  status_bar: 作品/示例卡片/状态栏.html
+character_book:
+  name: 这里是世界书名称
+  entries:
+    - comment: '[InitVar]初始化'
+      content: 作品/示例卡片/[InitVar]初始化.xyaml
+      enabled: false
+      position: before_char
+      insertion_order: 100
+      depth: 4
+      role: 0
+    - comment: 变量更新规则
+      content: 作品/示例卡片/变量更新规则.yaml
+      enabled: true
+      position: after_char
+      insertion_order: 1
+      depth: 1
+      role: 0
+    - comment: 变量处理指令集
+      content: 作品/示例卡片/变量处理指令集.yaml
+      enabled: true
+      position: after_char
+      insertion_order: 2
+      depth: 1
+      role: 0
+    - comment: 背景设定
+      content: 作品/示例卡片/背景设定.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+    - comment: 玩家角色_{{user}}
+      content: 作品/示例卡片/玩家角色_{{user}}.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 2
+      depth: 4
+      role: 0
+    - comment: 其他设定条目
+      content: 作品/示例卡片/其他设定条目.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+cover: 封面图/示例卡片.png

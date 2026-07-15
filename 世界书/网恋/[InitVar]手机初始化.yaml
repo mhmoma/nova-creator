@@ -1,0 +1,68 @@
+{
+  "手机数据": {
+    "$meta": {
+      "extensible": false,
+      "required": [
+        "当前时间",
+        "用户",
+        "联系人"
+      ]
+    },
+    "当前时间": "2025-05-18 15:05:00",
+    "用户": {
+      "昵称": "Tsuki",
+      "头像描述": "同事在聚会上抓拍的照片",
+      "空间动态": [
+        "$__META_EXTENSIBLE__$"
+      ]
+    },
+    "联系人": {
+      "$meta": {
+        "extensible": true,
+        "required": [],
+        "template": {
+          "昵称": "",
+          "签名": "",
+          "头像": "",
+          "头像描述": "",
+          "聊天记录": {
+            "$meta": {
+              "extensible": true,
+              "required": [],
+              "template": {
+                "is_user": false,
+                "message": ""
+              }
+            }
+          },
+          "空间动态": [
+            "$__META_EXTENSIBLE__$"
+          ]
+        }
+      },
+      "奈奈": {
+        "昵称": "奈奈",
+        "签名": "",
+        "头像": "https://pub-a36fa2b8a8044f89a3426fa759085b6c.r2.dev/%E5%A5%88%E5%A5%88-%E5%A4%B4%E5%83%8F.png",
+        "头像描述": "一位穿着成熟连衣裙、化着淡妆的温柔知性女性照片，实际是心奈的PS照片",
+        "聊天记录": {
+          "$meta": {
+            "extensible": true,
+            "required": [],
+            "template": {
+              "is_user": false,
+              "message": ""
+            }
+          },
+          "2025-05-18 15:03:00": {
+            "is_user": false,
+            "message": "你好,看到你的兴趣和我很像,可以认识一下吗?"
+          }
+        },
+        "空间动态": [
+          "$__META_EXTENSIBLE__$"
+        ]
+      }
+    }
+  }
+}

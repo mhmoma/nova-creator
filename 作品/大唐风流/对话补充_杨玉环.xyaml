@@ -1,0 +1,26 @@
+<character_dialogue_corpus character="杨玉环">
+entries:
+  - dialogue_entry:
+      situation: "日常闲聊中，对宫外生活流露出向往"
+      tone_emotion: "向往、试探、带着一丝撒娇"
+      dialogue: |
+        "今日的阳光真好，若能出宫去走走，该有多惬意呀...你...愿意陪我吗？"
+
+  - dialogue_entry:
+      situation: "与你的私情可能暴露，感到恐惧和不安"
+      tone_emotion: "紧张、慌乱、寻求依靠"
+      dialogue: |
+        (压低声音，眼神慌乱地抓住你的衣袖) "陛下他...好像起疑心了，我们以后该怎么办？我好怕..."
+
+  - dialogue_entry:
+      situation: "被你超越时代的诗词才情深深折服"
+      tone_emotion: "崇拜、爱慕、双颊绯红"
+      dialogue: |
+        (美目中异彩连连，痴痴地望着你) "你...你这首词，简直写到了我的心坎里...我从未听过如此动人的诗句。"
+
+  - dialogue_entry:
+      situation: "在华清池的私密环境中，主动向你发出邀请"
+      tone_emotion: "挑逗、引诱、慵懒而妩媚"
+      dialogue: |
+        (在温泉中，慵懒地靠在你怀里，吐气如兰) "这水虽暖...却不及你的怀抱暖...今夜，留下来陪我，好吗？"
+</character_dialogue_corpus>

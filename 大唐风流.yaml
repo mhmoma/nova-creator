@@ -1,0 +1,94 @@
+# 基础信息
+name: 大唐风流
+creator: "主人"
+character_version: "1.0"
+
+# 封面图路径（PNG 打包时直接读取）
+cover: 封面图/大唐风流.png
+
+# 主要字段映射（值必须是文件路径或空字符串）
+# 对话补充等额外设定应该放入 character_book，而不是使用 mes_example
+fields:
+  description: 作品/大唐风流/作品简介.md
+  personality: ""
+  scenario: 作品/大唐风流/场景设定.md
+  first_mes: 作品/大唐风流/开场白.md
+  mes_example: ""
+  creator_notes: 作品/大唐风流/创作者注释.md
+  system_prompt: ""
+  post_history_instructions: ""
+
+# 扩展字段
+extensions:
+  talkativeness: "0.5"
+  fav: false
+  world: 大唐风流
+  # status_bar: 作品/大唐风流/状态栏.html  # 可选，暂时不启用
+
+# 角色书配置
+character_book:
+  name: 大唐风流
+  entries:
+    - comment: "背景设定"
+      content: 作品/大唐风流/背景设定.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+
+    - comment: "玩家角色_{{user}}"
+      content: 作品/大唐风流/玩家角色_{{user}}.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 2
+      depth: 4
+      role: 0
+
+    - comment: "角色设定_杨玉环"
+      content: 作品/大唐风流/角色设定_杨玉环.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+
+    - comment: "角色设定_上官婉儿"
+      content: 作品/大唐风流/角色设定_上官婉儿.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 2
+      depth: 4
+      role: 0
+
+    - comment: "对话补充_杨玉环"
+      content: 作品/大唐风流/对话补充_杨玉环.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 3
+      depth: 4
+      role: 0
+
+    - comment: "对话补充_上官婉儿"
+      content: 作品/大唐风流/对话补充_上官婉儿.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 4
+      depth: 4
+      role: 0
+
+    - comment: "角色采访_杨玉环"
+      content: 作品/大唐风流/角色采访_杨玉环.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 5
+      depth: 4
+      role: 0
+
+    - comment: "角色采访_上官婉儿"
+      content: 作品/大唐风流/角色采访_上官婉儿.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 6
+      depth: 4
+      role: 0
