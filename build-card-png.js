@@ -13,9 +13,15 @@ const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp'];
 const CARD_TEXT_KEYWORDS = new Set(['chara', 'ccv3']);
 
 /**
- * 用 sharp 重编码图像，清除 EXIF / ICC / 原始 PNG 文本块等元数据
+ * 加载封面：PNG 尽量保留原文件块结构（多 IDAT / pHYs），
+ * 与可导入的《大唐风流》打包方式一致；非 PNG 再经 sharp 转码。
  */
 async function loadCleanImageBuffer(imagePath) {
+  const ext = path.extname(imagePath).toLowerCase();
+  if (ext === '.png') {
+    return fs.readFileSync(imagePath);
+  }
+
   return sharp(imagePath, { failOn: 'none' })
     .rotate()
     .png({ force: true, compressionLevel: 9 })
@@ -23,7 +29,18 @@ async function loadCleanImageBuffer(imagePath) {
 }
 
 /**
- * 规范化为 SillyTavern 可识别的 V3 角色卡结构
+ * SillyTavern 风格时间戳（对齐可导入的大唐风流卡）
+ * 例：2026-7-15 @22h 38m 10s 752ms
+ */
+function formatTavernCreateDate(date = new Date()) {
+  return (
+    `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}` +
+    ` @${date.getHours()}h ${date.getMinutes()}m ${date.getSeconds()}s ${date.getMilliseconds()}ms`
+  );
+}
+
+/**
+ * 规范化为 V3；create_date 用酒馆格式，不用 ISO。
  */
 function normalizeCardForPng(card) {
   const normalized = structuredClone(card);
@@ -31,7 +48,9 @@ function normalizeCardForPng(card) {
   normalized.spec = 'chara_card_v3';
   normalized.spec_version = '3.0';
 
-  if (normalized.data?.extensions?.world != null) {
+  if (!normalized.data) normalized.data = {};
+
+  if (normalized.data.extensions?.world != null) {
     normalized.data.extensions.world = String(normalized.data.extensions.world);
   }
 
@@ -44,32 +63,41 @@ function normalizeCardForPng(card) {
     normalized.data.extensions.world = worldName;
   }
 
+  normalized.create_date = formatTavernCreateDate();
+
   return normalized;
 }
 
 /**
- * 按 SillyTavern character-card-parser.write 的方式嵌入元数据：
- * - chara 与 ccv3 写入相同内容（均为 V3 JSON 的 base64）
- * - chara 在前，ccv3 在后
- * - 先移除已有的 chara / ccv3 块
+ * 嵌入元数据（对齐大唐风流可导入包）：
+ * - chara / ccv3 同写 V3
+ * - 不合并 IDAT、不删 pHYs
+ * - 只移除旧 chara/ccv3，再把新 tEXt 插到 IEND 前
  */
 function embedCardIntoPng(pngBuffer, card) {
   const normalized = normalizeCardForPng(card);
-  const cardJson = JSON.stringify(normalized);
-  const base64Payload = Buffer.from(cardJson, 'utf-8').toString('base64');
+  const base64Payload = Buffer.from(JSON.stringify(normalized), 'utf-8').toString('base64');
 
   const chunks = extract(new Uint8Array(pngBuffer));
 
   for (let i = chunks.length - 1; i >= 0; i--) {
     if (chunks[i].name !== 'tEXt') continue;
-    const decoded = PNGtext.decode(chunks[i].data);
-    if (CARD_TEXT_KEYWORDS.has(decoded.keyword.toLowerCase())) {
-      chunks.splice(i, 1);
+    try {
+      const decoded = PNGtext.decode(chunks[i].data);
+      if (CARD_TEXT_KEYWORDS.has(decoded.keyword.toLowerCase())) {
+        chunks.splice(i, 1);
+      }
+    } catch {
+      // keep
     }
   }
 
-  chunks.splice(-1, 0, PNGtext.encode('chara', base64Payload));
-  chunks.splice(-1, 0, PNGtext.encode('ccv3', base64Payload));
+  const textChunks = [
+    PNGtext.encode('chara', base64Payload),
+    PNGtext.encode('ccv3', base64Payload),
+  ];
+
+  chunks.splice(-1, 0, ...textChunks);
 
   return Buffer.from(encode(chunks));
 }
@@ -172,12 +200,7 @@ function parseArgs(argv) {
       continue;
     }
 
-    if (arg === '--help' || arg === '-h') {
-      options.help = true;
-      continue;
-    }
-
-    if (!arg.startsWith('-') && !options.inputPath) {
+    if (!options.inputPath) {
       options.inputPath = path.resolve(arg);
     }
   }
@@ -185,74 +208,43 @@ function parseArgs(argv) {
   return options;
 }
 
-function printHelp() {
-  console.log(`用法: node build-card-png.js <角色卡.json|.yaml> [选项]
-
-将角色卡嵌入 PNG 封面图，生成可直接导入 SillyTavern 的角色卡图片。
-
-选项:
-  --cover <路径>       指定封面图（优先于 YAML 配置中的 cover 字段）
-  --cover-dir <目录>   封面图目录（默认: ./封面图；无 cover 时按角色名匹配）
-  -o, --output <路径>  输出 PNG 路径（默认：完整作品/<角色名>/<角色名>.png）
-  -h, --help           显示帮助
-
-说明:
-  - 封面图会先经 sharp 重编码，抹除 EXIF、ICC、原 PNG 文本块等元数据
-  - chara 与 ccv3 写入相同的 V3 角色卡 JSON（SillyTavern 兼容格式）
-  - 封面图命名建议与角色卡名称一致，例如 封面图/红尘卷书.png
-
-示例:
-  node build-card-png.js 红尘卷书.json
-  node build-card-png.js config.yaml --cover 封面图/自定义.png
-  node build-card-png.js 示例卡片.json -o output/示例卡片.png`);
-}
-
-async function buildCardPng(inputPath, options = {}) {
-  const card = readCardFromPath(inputPath);
-  const cardName = card.name || path.basename(inputPath, path.extname(inputPath));
-  const coverFromConfig = readCoverFromConfig(inputPath);
-  const coverPath = findCoverImage(cardName, options.coverDir, options.cover || coverFromConfig);
-  const outputPath = options.outputPath || resolveCompleteWorkOutputPath(cardName, '.png');
-
-  console.log(`角色卡: ${cardName}`);
-  console.log(`封面图: ${coverPath}`);
-  console.log('正在清除原图元数据...');
-
-  const cleanImage = await loadCleanImageBuffer(coverPath);
-  const pngWithCard = embedCardIntoPng(cleanImage, card);
-
-  fs.writeFileSync(outputPath, pngWithCard);
-
-  const textChunks = extract(new Uint8Array(pngWithCard))
-    .filter((chunk) => chunk.name === 'tEXt')
-    .map((chunk) => PNGtext.decode(chunk.data).keyword);
-
-  console.log(`✓ 角色卡 PNG 已生成: ${outputPath}`);
-  console.log(`  嵌入元数据块: ${textChunks.join(', ')}`);
-
-  return outputPath;
-}
-
 async function main() {
   const options = parseArgs(process.argv.slice(2));
 
-  if (options.help || !options.inputPath) {
-    printHelp();
-    process.exit(options.help ? 0 : 1);
-  }
-
-  try {
-    await buildCardPng(options.inputPath, options);
-  } catch (error) {
-    console.error('打包失败:', error.message);
+  if (!options.inputPath) {
+    console.error('用法: node build-card-png.js <config.yaml|card.json> [--cover 封面图] [--output 输出.png]');
     process.exit(1);
   }
+
+  const card = readCardFromPath(options.inputPath);
+  const cardName = card.data?.name || card.name;
+  if (!cardName) {
+    throw new Error('角色卡缺少 name');
+  }
+
+  const explicitCover = options.cover || readCoverFromConfig(options.inputPath);
+  const coverPath = findCoverImage(cardName, options.coverDir, explicitCover);
+  const imageBuffer = await loadCleanImageBuffer(coverPath);
+  const pngBuffer = embedCardIntoPng(imageBuffer, card);
+
+  const outputPath =
+    options.outputPath ||
+    resolveCompleteWorkOutputPath(cardName, '.png');
+
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, pngBuffer);
+
+  console.log(`角色卡: ${cardName}`);
+  console.log(`封面图: ${coverPath}`);
+  console.log(`✓ 角色卡 PNG 已生成: ${outputPath}`);
+  console.log('  嵌入元数据块: chara, ccv3');
 }
 
-export { buildCardPng, embedCardIntoPng, findCoverImage, loadCleanImageBuffer, normalizeCardForPng };
-
-const __filename = fileURLToPath(import.meta.url);
-
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
-  main();
+const currentFile = path.resolve(fileURLToPath(import.meta.url));
+const invokedFile = process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (invokedFile && currentFile === invokedFile) {
+  main().catch((err) => {
+    console.error('构建失败:', err.message || err);
+    process.exit(1);
+  });
 }

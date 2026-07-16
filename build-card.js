@@ -24,7 +24,8 @@ function normalizePath(filePath) {
 }
 
 /**
- * 解析字段值：优先按文件路径读取；路径不存在且内容像正文时，按内联文本使用
+ * 解析字段值：优先按真实文件读取；否则按内联正文使用。
+ * 注意：正文里常有 HTML 的 `/`（如 StatusPlaceHolderImpl/），不能仅凭斜杠当路径。
  */
 function resolveFieldValue(value) {
   if (value === null || value === undefined || value === '') {
@@ -32,24 +33,39 @@ function resolveFieldValue(value) {
   }
 
   const text = String(value);
-  const normalized = normalizePath(text.trim());
+  const trimmed = text.trim();
+  const normalized = normalizePath(trimmed);
 
+  // 1) 磁盘上真有这个文件 → 读文件（最稳妥，恢复旧行为）
   try {
     if (fs.existsSync(normalized) && fs.statSync(normalized).isFile()) {
       return readFile(normalized);
     }
   } catch {
-    // 继续尝试按内联文本处理
+    // 继续下方判断
   }
 
-  // 多行、无扩展名、或不像相对路径 → 视为内联正文
-  const looksLikePath = /[\\/]/.test(text) || /\.\w{1,10}$/.test(text.trim());
-  if (!looksLikePath || text.includes('\n')) {
-    console.warn(`字段按内联文本处理（未找到文件）: ${text.slice(0, 40).replace(/\n/g, ' ')}...`);
+  // 2) 明显是内联正文（多行 / HTML 标签 / 过长 / 中文标题符）→ 不当路径
+  if (
+    /[\n\r]/.test(text) ||
+    /<[A-Za-z/!]/.test(text) ||
+    /[【】]/.test(text) ||
+    trimmed.length > 260
+  ) {
     return text;
   }
 
-  return readFile(normalized);
+  // 3) 像仓库内路径但文件不存在 → 报错，避免把路径字符串打进卡里
+  const looksLikeRepoPath =
+    /^(作品|封面图|基础模板|完整作品|MVU组件包)[\\/]/.test(trimmed) ||
+    (/[\\/]/.test(trimmed) && /\.(md|txt|xyaml|yaml|yml|html|js|json)$/i.test(trimmed));
+
+  if (looksLikeRepoPath) {
+    return readFile(normalized);
+  }
+
+  // 4) 其余短文本当内联
+  return text;
 }
 
 /**
@@ -128,12 +144,33 @@ function buildCharacterBookEntry(config, index) {
   entry.extensions.depth = config.depth ?? 4;
   entry.extensions.role = config.role ?? 0;
 
+  // 允许 YAML 覆盖 keys / constant（dzmm 据教程不读常量条目时可用关键字条目）
+  if (Array.isArray(config.keys)) {
+    entry.keys = config.keys;
+  }
+  if (Array.isArray(config.secondary_keys)) {
+    entry.secondary_keys = config.secondary_keys;
+  }
+  if (typeof config.constant === 'boolean') {
+    entry.constant = config.constant;
+  }
+
   // [initvar]初始化条目的特殊处理
   if (config.comment?.toLowerCase().includes('[initvar]')) {
     entry.constant = false;
   }
 
   return entry;
+}
+
+/**
+ * SillyTavern 风格时间戳（对齐可导入的大唐风流卡）
+ */
+function formatTavernCreateDate(date = new Date()) {
+  return (
+    `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}` +
+    ` @${date.getHours()}h ${date.getMinutes()}m ${date.getSeconds()}s ${date.getMilliseconds()}ms`
+  );
 }
 
 /**
@@ -277,9 +314,8 @@ function buildCharacterCard(configPath) {
     });
   }
 
-  // 获取当前日期时间
-  const now = new Date();
-  const createDate = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} @${now.getHours()}h ${now.getMinutes()}m ${now.getSeconds()}s ${now.getMilliseconds()}ms`;
+  // JSON 的 create_date 也用酒馆格式，与可导入的大唐风流一致
+  const createDate = formatTavernCreateDate();
 
   // 构建完整的角色卡结构
   const card = {

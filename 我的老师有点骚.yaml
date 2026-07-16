@@ -1,0 +1,61 @@
+# 基础信息
+name: 我的老师有点骚
+creator: ""
+character_version: "1.0"
+
+# 封面图路径（PNG 打包时直接读取）
+cover: 封面图/我的老师有点骚.png
+
+# 主要字段映射
+fields:
+  description: 作品/我的老师有点骚/作品简介.md
+  personality: ""
+  scenario: 作品/我的老师有点骚/场景设定.md
+  first_mes: 作品/我的老师有点骚/开场白.md
+  mes_example: ""
+  creator_notes: ""
+  system_prompt: 作品/我的老师有点骚/系统指令.md
+  post_history_instructions: 作品/我的老师有点骚/状态栏最高指令.md
+
+# 扩展字段
+extensions:
+  talkativeness: "0.5"
+  fav: false
+  world: 我的老师有点骚
+  # 文本状态栏路线勿启用 status_bar
+
+# 角色书配置
+character_book:
+  name: 我的老师有点骚
+  entries:
+    - comment: "背景设定"
+      content: 作品/我的老师有点骚/背景设定.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 1
+      depth: 4
+      role: 0
+
+    - comment: "玩家角色_{{user}}"
+      content: 作品/我的老师有点骚/玩家角色_{{user}}.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 2
+      depth: 4
+      role: 0
+
+    - comment: "角色深度扫描"
+      content: 作品/我的老师有点骚/状态栏.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 0
+      depth: 4
+      role: 0
+
+    - comment: "角色设定_沈清禾"
+      content: 作品/我的老师有点骚/角色设定_沈清禾.xyaml
+      enabled: true
+      position: after_char
+      insertion_order: 1
+      depth: 4
+      role: 0

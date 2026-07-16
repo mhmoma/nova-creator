@@ -553,12 +553,16 @@ function generateMarkdown() {
     const workName = $('#workName').val() || '作品名称';
     const coverPath = $('#coverPath').val().trim() || getDefaultCoverPath(workName);
     let md = '# 角色卡创作任务清单\n\n';
-    md += '> 💡 **使用说明**：此文件由任务清单生成器自动生成，在创作过程中可以随时更新和调整。\n\n';
-    md += '> 📁 **文件组织建议**：\n';
-    md += `> - 请在 \`作品\` 目录下创建一个名为 \`${workName}\` 的文件夹\n`;
-    md += '> - 将此 to-do.md 文件放入该文件夹\n';
-    md += '> - 后续创作的所有相关文件（背景设定、角色卡、开场白等）也都放入此文件夹中\n';
-    md += '> - 这样可以保持项目文件的整洁和有序\n\n';
+    md += '> ⚠️ **写卡 AI 铁律（必读）**：\n';
+    md += '> 1. 本清单正文为**只读需求**，禁止改写、扩写、删减、重排任何设定内容。\n';
+    md += '> 2. **仅允许**更新文末进度勾选 `[ ]`/`[x]`。\n';
+    md += '> 3. 每步开写前必须打开对应「参考模板」全文，禁止凭记忆写作。\n';
+    md += '> 4. 文本状态栏与 `post_history_instructions` 只能用 `基础模板/Z.7.*`，禁止自创宏或自写最高指令。\n';
+    md += '> 5. 总规范：`基础模板/写卡AI执行规范.md`\n\n';
+    md += '> 📁 **文件组织**：\n';
+    md += `> - 请在 \`作品\` 目录下创建名为 \`${workName}\` 的文件夹\n`;
+    md += '> - 将此 to-do.md 放入该文件夹\n';
+    md += '> - 后续成品（背景、角色、开场白等）均放入同一文件夹\n\n';
     md += '---\n\n';
 
     // 基本信息
@@ -1029,22 +1033,24 @@ function generateMarkdown() {
     md += '# 封面图路径（PNG 打包时直接读取）\n';
     md += 'cover: ' + coverPath + '\n\n';
     md += '# 主要字段映射\n';
+    md += '# description→作品简介；system_prompt→系统指令（平台栏）；详设在世界书。见 Z.8\n';
     md += '# 对话补充等额外设定应该放入 character_book，而不是使用 mes_example\n';
     md += 'fields:\n';
-    md += '  description: 作品/' + workName + '/角色设定_主角名.xyaml\n';
+    md += '  description: 作品/' + workName + '/作品简介.md\n';
     md += '  personality: ""\n';
-    md += '  scenario: ""\n';
+    md += '  scenario: 作品/' + workName + '/场景设定.md\n';
     md += '  first_mes: 作品/' + workName + '/开场白.md\n';
     md += '  mes_example: ""\n';
     md += '  creator_notes: ""\n';
-    md += '  system_prompt: ""\n';
-    md += '  post_history_instructions: ""\n\n';
+    md += '  system_prompt: 作品/' + workName + '/系统指令.md\n';
+    md += '  post_history_instructions: 作品/' + workName + '/状态栏最高指令.md\n\n';
     md += '# 扩展字段\n';
     md += 'extensions:\n';
     md += '  talkativeness: "0.5"\n';
     md += '  fav: false\n';
     md += '  world: ' + workName + '\n';
-    md += '  status_bar: 作品/' + workName + '/状态栏.html  # 可选\n\n';
+    md += '  # 文本状态栏勿填此项；仅 MVU HTML 路线才启用\n';
+    md += '  # status_bar: 作品/' + workName + '/状态栏.html\n\n';
     if (document.getElementById('needMVU').checked) {
         md += '# 脚本配置\n';
         md += 'scripts:\n';
@@ -1118,6 +1124,14 @@ function generateMarkdown() {
         insertionOrder++;
     }
 
+    md += '    # 文本状态栏（标准模板：基础模板/Z.7.状态栏.xyaml）\n';
+    md += '    - comment: "角色深度扫描"\n';
+    md += '      content: 作品/' + workName + '/状态栏.xyaml\n';
+    md += '      enabled: true\n';
+    md += '      position: after_char\n';
+    md += '      insertion_order: 0\n';
+    md += '      depth: 4\n';
+    md += '      role: 0\n\n';
     md += '    # 其他设定条目（可添加多个）\n';
     md += '    - comment: "其他设定条目1"\n';
     md += '      content: 作品/' + workName + '/其他设定1.xyaml\n';
@@ -1131,7 +1145,11 @@ function generateMarkdown() {
     md += '**配置说明：**\n\n';
     md += '- `name`: 角色卡名称\n';
     md += '- `fields`: 各个字段对应的文件路径，空字符串 `""` 表示该字段为空\n';
-    md += '- `extensions.status_bar`: 状态栏HTML文件路径（可选）\n';
+    md += '- `description`: 多角色用 `作品简介.md`（`Z.8.作品概述.md`）；单角色可改为人设文件\n';
+    md += '- `system_prompt`: 平台「系统指令」← `系统指令.md`（`Z.8.系统指令.md`）\n';
+    md += '- `post_history_instructions`: ← `状态栏最高指令.md`（`Z.7`）。禁止「一字不差输出世界书」\n';
+    md += '- `extensions.status_bar`: 仅 MVU HTML；文本状态栏勿填\n';
+    md += '- 文本状态栏：复制 `Z.7.状态栏.xyaml`，comment 固定「角色深度扫描」\n';
     md += '- `character_book.entries`: 角色书条目列表\n';
     md += '  - `comment`: 条目名称\n';
     md += '  - `content`: 条目内容对应的文件路径\n';

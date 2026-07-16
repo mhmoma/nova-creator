@@ -21,15 +21,15 @@ npm install
 
 ### 2. 生成创作清单
 
-在浏览器中打开 `to-do-generator.html`，填写作品信息后点击「生成 Markdown」。
+**平台写卡（推荐，无变量）：** 浏览器打开 `platform-card-studio.html`，按发布平台字段填写后导出 `to-do.md`。
+
+**旧版（含 MVU）：** 仍可打开 `to-do-generator.html`；源文件未改动。
 
 生成内容包含：
 
-- 创作任务清单
-- YAML 打包配置模板（含 `cover` 封面路径）
-- JSON / PNG 打包说明
-
-若上传了封面图，会同时下载图片文件，保存到配置中的路径即可（如 `封面图/作品名.png`）。
+- 写卡铁律 + 分步任务清单
+- 对齐 `description` / `system_prompt` / 场景 / 文本状态栏 的映射说明
+- YAML 打包配置模板
 
 ### 3. AI 辅助创作
 
@@ -152,7 +152,10 @@ node build-card-png.js 作品/<角色名>/<角色名>.yaml
 
 ```
 NOVA-CREATOR/
-├── to-do-generator.html    # 任务清单生成器（浏览器打开）
+├── platform-card-studio.html  # 平台写卡清单工坊（无 MVU，推荐）
+├── platform-card-studio.js
+├── platform-card-studio.css
+├── to-do-generator.html       # 旧版清单生成器（含 MVU，保留）
 ├── to-do-generator.js
 ├── to-do-generator.css
 ├── build-card.js           # JSON 打包
@@ -161,7 +164,7 @@ NOVA-CREATOR/
 ├── work-output.js          # 输出路径工具
 ├── config.example.yaml     # 配置示例
 ├── 示例卡片.json           # 角色卡结构参考
-├── 基础模板/               # 创作模板
+├── 基础模板/               # 创作模板（含 Z.7/Z.8）
 ├── MVU组件包/              # MVU 系统文档
 ├── 额外补充包/             # 可选补充模板
 ├── 作品/                   # 创作源文件（本地，不入库）
@@ -188,9 +191,9 @@ NOVA-CREATOR/
 ## 工作流程示意
 
 ```
-填写 to-do-generator.html
+填写 platform-card-studio.html（平台）或 to-do-generator.html（MVU）
         ↓
-  下载 to-do.md + 封面图
+  下载 to-do.md
         ↓
    AI 按清单创作源文件
         ↓
@@ -199,7 +202,7 @@ NOVA-CREATOR/
   build-card.js  →  完整作品/xxx/xxx.json
   build-card-png.js  →  完整作品/xxx/xxx.png
         ↓
-     导入 SillyTavern
+     导入发布平台 / SillyTavern
 
 修改已有角色卡：
   unpack-card.js  →  作品/xxx/（源文件 + xxx.yaml）

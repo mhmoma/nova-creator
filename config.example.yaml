@@ -12,17 +12,21 @@ cover: 封面图/示例卡片.png
 # 主要字段映射(空字符串表示该字段为空)
 # 对话补充等额外设定应该放入 character_book，而不是使用 mes_example
 #
-# 单角色作品: description 填写角色设定文件路径
-# 多角色作品: description 保持为空 ""，各角色设定写入 character_book 的其他设定条目中
+# 字段分工（发布平台常见栏位）：
+# - description     → 平台「角色背景/详细信息」：单角色写人设；多角色写「作品概述」(Z.8.作品概述.md)
+# - system_prompt   → 平台「系统指令」：扮演规则 (Z.8.系统指令.md)
+# - scenario        → 开场情境摘要
+# - post_history_instructions → 状态栏铁律等历史后指令 (Z.7)
+# - 详设/世界观     → character_book，不要全塞进 description
 fields:
-  description: 作品/示例作品/角色设定.xyaml  # 单角色时使用；多角色时留空
+  description: 作品/示例作品/作品简介.md  # 多角色概述；单角色可改为角色设定.xyaml
   personality: ""
-  scenario: ""
+  scenario: 作品/示例作品/场景设定.md
   first_mes: 作品/示例作品/开场白.md
   mes_example: ""
   creator_notes: ""
-  system_prompt: ""
-  post_history_instructions: ""
+  system_prompt: 作品/示例作品/系统指令.md
+  post_history_instructions: 作品/示例作品/状态栏最高指令.md
 
 # 扩展字段
 extensions:

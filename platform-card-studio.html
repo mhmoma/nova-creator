@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>平台写卡清单工坊 · Nova</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="platform-card-studio.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="shell">
+    <aside class="rail">
+      <div class="brand">
+        <p class="brand-mark">Nova</p>
+        <h1 class="brand-title">平台写卡清单工坊</h1>
+        <p class="brand-lead">无变量 · 对齐发布平台字段 · 输出只读 to-do</p>
+      </div>
+      <nav class="rail-nav" id="railNav"></nav>
+      <div class="rail-foot">
+        <p>旧版 <code>to-do-generator.html</code>（含 MVU）保持不动，可继续单独打开。</p>
+      </div>
+    </aside>
+
+    <main class="stage">
+      <header class="masthead">
+        <p class="eyebrow">面向发布平台流程</p>
+        <h2>按栏位组织需求，一键导出创作清单</h2>
+        <p class="mast-desc">对应：作品概述、系统指令、场景、开场白、世界书人设、文本状态栏。不包含 MVU / HTML 变量状态栏。</p>
+        <div class="mast-actions">
+          <button type="button" class="btn primary" id="btnGenerate">生成清单并下载</button>
+          <button type="button" class="btn ghost" id="btnReset">清空表单</button>
+        </div>
+      </header>
+
+      <section class="panel" id="sec-basic" data-nav>
+        <div class="panel-head">
+          <span class="idx">01</span>
+          <div>
+            <h3>基本信息</h3>
+            <p>作品名将用于目录、yaml 与封面路径建议。</p>
+          </div>
+        </div>
+        <div class="grid-2">
+          <label class="field">作品名称
+            <input id="workName" type="text" placeholder="例如：逆鳞">
+          </label>
+          <label class="field">作品类型
+            <input id="workType" type="text" placeholder="例如：现代都市 / 黑帮">
+          </label>
+        </div>
+        <label class="field">封面图路径
+          <input id="coverPath" type="text" placeholder="封面图/作品名.png">
+        </label>
+        <label class="field">创作者署名（写入 yaml creator）
+          <input id="creatorName" type="text" placeholder="可选">
+        </label>
+      </section>
+
+      <section class="panel" id="sec-world" data-nav>
+        <div class="panel-head">
+          <span class="idx">02</span>
+          <div>
+            <h3>世界观 / 背景</h3>
+            <p>成品：<code>背景设定.xyaml</code> · 模板 Z.1</p>
+          </div>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="needBackground" checked>
+          <span>需要背景设定（写入世界书）</span>
+        </label>
+        <div class="grid-2">
+          <label class="field">时代/时期
+            <input id="bgEra" type="text" placeholder="现代 / 近未来…">
+          </label>
+          <label class="field">主要地点
+            <input id="bgLocation" type="text" placeholder="城市、据点…">
+          </label>
+        </div>
+        <label class="field">背景描述
+          <textarea id="bgDescription" rows="5" placeholder="舞台氛围、权力结构、核心冲突…"></textarea>
+        </label>
+        <label class="field">特殊规则 / 铁律
+          <textarea id="bgRules" rows="3" placeholder="例如：逆鳞——禁止仙人跳…"></textarea>
+        </label>
+        <label class="field">补充说明
+          <textarea id="bgExtra" rows="2"></textarea>
+        </label>
+      </section>
+
+      <section class="panel" id="sec-chars" data-nav>
+        <div class="panel-head">
+          <span class="idx">03</span>
+          <div>
+            <h3>角色设定（世界书）</h3>
+            <p>成品：<code>角色设定_姓名.xyaml</code> · 模板 Z.2 / 简要版。详设不进 description。</p>
+          </div>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="needCharacters" checked>
+          <span>需要角色设定</span>
+        </label>
+        <div id="charList" class="char-list"></div>
+        <button type="button" class="btn soft" id="btnAddChar">添加角色</button>
+      </section>
+
+      <section class="panel" id="sec-opening" data-nav>
+        <div class="panel-head">
+          <span class="idx">04</span>
+          <div>
+            <h3>开场白</h3>
+            <p>成品：<code>开场白.md</code> · 模板 Z.3；若启用状态栏须在文末带填好的锚点。</p>
+          </div>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="needOpening" checked>
+          <span>需要开场白</span>
+        </label>
+        <div class="grid-2">
+          <label class="field">开场场景类型
+            <input id="openingScene" type="text" placeholder="角色扮演 / 对抗 / 日常…">
+          </label>
+          <label class="field">目标篇幅
+            <select id="openingLength">
+              <option value="简单场景（300-500字）">简单 300–500 字</option>
+              <option value="标准场景（500-800字）" selected>标准 500–800 字</option>
+              <option value="复杂场景（800-1500字）">复杂 800–1500 字</option>
+            </select>
+          </label>
+        </div>
+        <div class="grid-2">
+          <label class="field">时间
+            <input id="openingTime" type="text">
+          </label>
+          <label class="field">地点
+            <input id="openingLocation" type="text">
+          </label>
+        </div>
+        <label class="field">氛围
+          <input id="openingAtmosphere" type="text">
+        </label>
+        <label class="field">与 {{user}} 的关系
+          <input id="openingUserRelation" type="text">
+        </label>
+        <label class="field">具体场景 / 冲突大纲
+          <textarea id="openingConflict" rows="6" placeholder="开场发生什么、如何落到玩家可行动的节点…"></textarea>
+        </label>
+      </section>
+
+      <section class="panel" id="sec-player" data-nav>
+        <div class="panel-head">
+          <span class="idx">05</span>
+          <div>
+            <h3>玩家角色</h3>
+            <p>成品：<code>玩家角色_{{user}}.xyaml</code> · 模板 Z.6</p>
+          </div>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="needPlayer" checked>
+          <span>需要玩家框架设定</span>
+        </label>
+        <label class="field">设定深度
+          <select id="playerDepth">
+            <option value="极简设定（最大自由度）">极简</option>
+            <option value="简化设定（有基本框架）" selected>简化框架</option>
+            <option value="完整设定（明确背景和性格）">完整</option>
+          </select>
+        </label>
+        <label class="field">玩家角色大纲
+          <textarea id="playerOutline" rows="4" placeholder="身份、气质、能力底线；姓名用 {{user}}"></textarea>
+        </label>
+      </section>
+
+      <section class="panel" id="sec-platform" data-nav>
+        <div class="panel-head">
+          <span class="idx">06</span>
+          <div>
+            <h3>平台主字段</h3>
+            <p>对应发布页：详细信息 / 系统指令 / 场景。多角色时 description 用作品概述，不写真人设全文。</p>
+          </div>
+        </div>
+
+        <div class="subblock">
+          <h4>作品概述 → <code>description</code> → 作品简介.md</h4>
+          <p class="hint">模板 <code>Z.8.作品概述.md</code>。写题材、你是谁、角色一览、当前局面。</p>
+          <label class="check">
+            <input type="checkbox" id="needOverview" checked>
+            <span>生成作品概述任务</span>
+          </label>
+          <label class="field">概述要点（给写卡 AI）
+            <textarea id="overviewHints" rows="4" placeholder="卖点、必出现的角色名、一句话冲突…"></textarea>
+          </label>
+        </div>
+
+        <div class="subblock">
+          <h4>系统指令 → <code>system_prompt</code> → 系统指令.md</h4>
+          <p class="hint">模板 <code>Z.8.系统指令.md</code>。只写扮演规则，不写状态栏铁律。</p>
+          <label class="check">
+            <input type="checkbox" id="needSystem" checked>
+            <span>生成系统指令任务</span>
+          </label>
+          <label class="field">文风与扮演要求
+            <textarea id="systemHints" rows="4" placeholder="第二人称、黑道压迫感、禁止代 {{user}} 决策…"></textarea>
+          </label>
+        </div>
+
+        <div class="subblock">
+          <h4>场景 → <code>scenario</code> → 场景设定.md</h4>
+          <label class="check">
+            <input type="checkbox" id="needScenario" checked>
+            <span>生成场景摘要任务</span>
+          </label>
+          <label class="field">场景摘要要点
+            <textarea id="scenarioHints" rows="3" placeholder="开场落点一句话…"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel" id="sec-statusbar" data-nav>
+        <div class="panel-head">
+          <span class="idx">07</span>
+          <div>
+            <h3>文本状态栏</h3>
+            <p>无变量。复制 <code>Z.7.状态栏.xyaml</code>；PHI 用标准铁律文件。禁止自造宏。</p>
+          </div>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="needStatusBar" checked>
+          <span>启用文本状态栏（推荐）</span>
+        </label>
+        <label class="field">焦点角色说明（写入清单）
+          <textarea id="statusFocus" rows="2" placeholder="例如：默认扫描苏芮；陈曦戏份更重时切换"></textarea>
+        </label>
+        <p class="hint">将自动要求：开场白文末追加已填写状态栏锚点；<code>post_history_instructions</code> → <code>状态栏最高指令.md</code>。</p>
+      </section>
+
+      <section class="panel" id="sec-extra" data-nav>
+        <div class="panel-head">
+          <span class="idx">08</span>
+          <div>
+            <h3>额外需求</h3>
+            <p>叙事禁忌、尺度、必须保留的梗等。</p>
+          </div>
+        </div>
+        <label class="field">补充说明
+          <textarea id="extraNotes" rows="4"></textarea>
+        </label>
+      </section>
+
+      <section class="panel preview-panel" id="sec-preview" data-nav>
+        <div class="panel-head">
+          <span class="idx">09</span>
+          <div>
+            <h3>预览 / 导出</h3>
+            <p>生成后下载以<strong>作品名称</strong>命名的 Markdown（例如填了「逆鳞」则下载 <code>逆鳞.md</code>）。</p>
+          </div>
+        </div>
+        <pre id="previewOut" class="preview" hidden></pre>
+      </section>
+    </main>
+  </div>
+
+  <template id="tpl-char">
+    <article class="char-card">
+      <div class="char-card-top">
+        <strong class="char-label">角色</strong>
+        <button type="button" class="btn tiny danger char-remove">移除</button>
+      </div>
+      <div class="grid-2">
+        <label class="field">姓名
+          <input class="c-name" type="text" placeholder="角色名">
+        </label>
+        <label class="field">定位
+          <select class="c-role">
+            <option value="主角（NPC）">主角（NPC）</option>
+            <option value="重要配角" selected>重要配角</option>
+            <option value="普通 NPC">普通 NPC</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid-2">
+        <label class="field">性别
+          <input class="c-gender" type="text">
+        </label>
+        <label class="field">年龄
+          <input class="c-age" type="text">
+        </label>
+      </div>
+      <label class="field">模板
+        <select class="c-template">
+          <option value="full">原版完整（Z.2）</option>
+          <option value="brief">简要版（Z.2 简要）</option>
+        </select>
+      </label>
+      <label class="field">人设大纲（外貌/性格/关系/动机，条目即可）
+        <textarea class="c-outline" rows="5"></textarea>
+      </label>
+    </article>
+  </template>
+
+  <script src="platform-card-studio.js"></script>
+</body>
+</html>
